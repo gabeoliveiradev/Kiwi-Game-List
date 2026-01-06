@@ -10,7 +10,7 @@
 
 ## Sobre o Projeto
 
-O **Game Backlog Manager** é uma aplicação Fullstack desenvolvida para resolver o problema de "backlog de jogos". Ele permite que o usuário pesquise jogos reais (integrado via API externa), adicione-os à sua biblioteca pessoal e gerencie seu progresso através de um quadro interativo.
+O **Kiwi Game List** é uma aplicação Fullstack desenvolvida para resolver o problema de "backlog de jogos". Ele permite que o usuário pesquise jogos reais (integrado via API externa), adicione-os à sua biblioteca pessoal e gerencie seu progresso através de um quadro interativo.
 
 O objetivo principal deste projeto é demonstrar a construção de uma arquitetura robusta utilizando **Java (Spring Boot)** no backend e **React** no frontend, com foco em boas práticas de REST API, autenticação e gerenciamento de estado.
 
