@@ -1,3 +1,81 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
+
 export default function Home() {
-    return <h1>Games</h1>
+  const [searchTerm, setSearchTerm] = useState('')
+  const [games, setGames] = useState([])
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    localStorage.removeItem('kiwi_token')
+    navigate('/')
+  }
+
+  async function handleSearch(e) {
+    e.preventDefault()
+    
+    if(!searchTerm) return;
+
+    try {
+      const response = await api.get(`/games/search?query=${searchTerm}`)
+      setGames(response.data)
+    } catch (error) {
+      alert('Erro ao buscar jogos. Seu token pode ter expirado.')
+      console.error(error)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-900 text-white p-8">
+      
+      {/* CABEÇALHO */}
+      <header className="flex justify-between items-center mb-10 border-b border-zinc-700 pb-4">
+        <h1 className="text-3xl font-bold text-green-400">Kiwi Game List 🥝</h1>
+        <button onClick={handleLogout} className="text-red-400 hover:text-red-300 font-bold">
+          Sair
+        </button>
+      </header>
+
+      {/* BARRA DE BUSCA */}
+      <div className="flex justify-center mb-10">
+        <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-2xl">
+          <input 
+            type="text"
+            placeholder="Qual jogo você procura? (ex: Mario, The Witcher)"
+            className="w-full bg-zinc-800 p-4 rounded-lg outline-none focus:ring-2 focus:ring-green-500 text-lg"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+          <button type="submit" className="bg-green-600 px-8 rounded-lg font-bold hover:bg-green-500 transition-colors">
+            BUSCAR
+          </button>
+        </form>
+      </div>
+
+      {/* LISTA DE JOGOS (RESULTADOS) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {games.map(game => (
+          <div key={game.id} className="bg-zinc-800 rounded-lg overflow-hidden shadow-lg hover:scale-110 transition-transform">
+            <img src={game.backgroundImage} alt={game.name} className="w-full h-48 object-cover" />
+            <div className="p-4">
+              <h3 className="font-bold text-lg truncate">{game.name}</h3>
+              <p className="text-zinc-400 text-sm">Rating: {game.rating} ⭐</p>
+              
+              <button className="mt-4 w-full bg-zinc-700 py-2 rounded text-sm hover:bg-zinc-600">
+                + Adicionar à Lista
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {games.length === 0 && (
+        <p className="text-center text-zinc-500 mt-20 text-xl">
+          Digite o nome de um jogo acima para começar...
+        </p>
+      )}
+
+    </div>
+  )
 }
