@@ -1,5 +1,8 @@
 package com.gabrieloliveira.kiwi_game_list.controller;
 
+import com.gabrieloliveira.kiwi_game_list.dto.GameMinDTO;
+import com.gabrieloliveira.kiwi_game_list.entity.Game;
+import com.gabrieloliveira.kiwi_game_list.repository.GameRepository;
 import com.gabrieloliveira.kiwi_game_list.entity.User;
 import com.gabrieloliveira.kiwi_game_list.entity.UserGame;
 import com.gabrieloliveira.kiwi_game_list.repository.UserGameRepository;
@@ -9,11 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/games")
+@RequestMapping("/my-games")
 public class UserGameController {
 
     @Autowired
@@ -22,22 +27,42 @@ public class UserGameController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private GameRepository gameRepository;
+
     @GetMapping
-    public List<UserGame> listarJogos(@PathVariable Long userId) {
-        return userGameRepository.findByUserId(userId);
+    public List<UserGame> listarJogos(@AuthenticationPrincipal UserDetails userDetails) {
+        User usuario = (User) userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        return userGameRepository.findByUser(usuario);
     }
 
     @PostMapping
-    public ResponseEntity<UserGame> adicionarJogo(@PathVariable Long userId, @RequestBody UserGame novoJogo) {
+    public ResponseEntity<Object> adicionarJogo(@RequestBody GameMinDTO data, @AuthenticationPrincipal UserDetails userDetails) {
+        User usuario = (User) userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        User usuario = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        Game game = gameRepository.findById(data.id()).orElseGet(() -> {
+            Game newGame = new Game();
+            newGame.setId(data.id());
+            newGame.setName(data.name());
+            newGame.setBackgroundImage(data.backgroundImage());
+            newGame.setRating(data.rating());
+            return gameRepository.save(newGame);
+        });
 
-        novoJogo.setUser(usuario);
+        if (userGameRepository.existsByUserAndGame(usuario, game)) {
+            return ResponseEntity.badRequest().body("Jogo já está na lista");
+        }
 
-        UserGame jogoSalvo = userGameRepository.save(novoJogo);
+        UserGame novoUserGame = new UserGame();
+        novoUserGame.setUser(usuario);
+        novoUserGame.setGame(game);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(jogoSalvo);
+        userGameRepository.save(novoUserGame);
+
+        return ResponseEntity.status(201).build();
     }
 
     @PutMapping("/{gameId}")

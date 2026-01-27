@@ -11,13 +11,13 @@ public class UserGame {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "game_api_id")
-    private Long gameApiId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    private String title;
-
-    @Column(name = "image_url")
-    private String imageUrl;
+    @ManyToOne
+    @JoinColumn(name = "game_id")
+    private Game game;
 
     @Enumerated(EnumType.STRING)
     private GameStatus status;
@@ -27,46 +27,54 @@ public class UserGame {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     public UserGame() {
     }
 
-    public UserGame(Long id, Long gameApiId, String title, String imageUrl, GameStatus status, Double personalRating, String notes, User user) {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
         this.id = id;
-        this.gameApiId = gameApiId;
-        this.title = title;
-        this.imageUrl = imageUrl;
-        this.status = status;
-        this.personalRating = personalRating;
-        this.notes = notes;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
         this.user = user;
     }
 
+    public Game getGame() {
+        return game;
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setGame(Game game) {
+        this.game = game;
+    }
 
-    public Long getGameApiId() { return gameApiId; }
-    public void setGameApiId(Long gameApiId) { this.gameApiId = gameApiId; }
+    public GameStatus getStatus() {
+        return status;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setStatus(GameStatus status) {
+        this.status = status;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Double getPersonalRating() {
+        return personalRating;
+    }
 
-    public GameStatus getStatus() { return status; }
-    public void setStatus(GameStatus status) { this.status = status; }
+    public void setPersonalRating(Double personalRating) {
+        this.personalRating = personalRating;
+    }
 
-    public Double getPersonalRating() { return personalRating; }
-    public void setPersonalRating(Double personalRating) { this.personalRating = personalRating; }
+    public String getNotes() {
+        return notes;
+    }
 
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }
