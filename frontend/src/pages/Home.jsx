@@ -26,6 +26,24 @@ export default function Home() {
     }
   }
 
+  async function handleAddGame(gameId) {
+    try {
+      const gameNutella = games.find(g => g.id === gameId);
+
+      await api.post('/my-games', {
+        id: gameNutella.id,
+        name: gameNutella.name,
+        backgroundImage: gameNutella.backgroundImage,
+        rating: gameNutella.rating
+      });
+
+      alert('Jogo adicionado à sua lista com sucesso! 🕹️');
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao adicionar. Talvez você já tenha esse jogo na lista?');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-8">
       
@@ -62,8 +80,11 @@ export default function Home() {
               <h3 className="font-bold text-lg truncate">{game.name}</h3>
               <p className="text-zinc-400 text-sm">Rating: {game.rating} ⭐</p>
               
-              <button className="mt-4 w-full bg-zinc-700 py-2 rounded text-sm hover:bg-zinc-600">
-                + Adicionar à Lista
+              <button 
+                onClick={() => handleAddGame(game.id)}
+                className="mt-4 w-full bg-zinc-700 py-2 rounded text-sm hover:bg-zinc-600 active:bg-green-700 focus:outline-none"
+              >
+              + Adicionar à Lista
               </button>
             </div>
           </div>
