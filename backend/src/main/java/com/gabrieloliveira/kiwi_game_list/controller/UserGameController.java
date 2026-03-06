@@ -1,5 +1,5 @@
 package com.gabrieloliveira.kiwi_game_list.controller;
-
+import com.gabrieloliveira.kiwi_game_list.entity.enums.GameStatus;
 import com.gabrieloliveira.kiwi_game_list.dto.GameMinDTO;
 import com.gabrieloliveira.kiwi_game_list.entity.Game;
 import com.gabrieloliveira.kiwi_game_list.repository.GameRepository;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/my-games")
@@ -90,5 +90,28 @@ public class UserGameController {
         UserGame jogoSalvo = userGameRepository.save(jogoExistente);
 
         return ResponseEntity.ok(jogoSalvo);
+    }
+
+    @PutMapping("/{gameId}/status")
+    public ResponseEntity<Object> atualizarStatus(
+            @PathVariable Long gameId,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User usuario = (User) userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Jogo não encontrado"));
+
+        UserGame userGame = userGameRepository.findByUserAndGame(usuario, game)
+                .orElseThrow(() -> new RuntimeException("Jogo não está na sua lista"));
+
+        String novoStatus = body.get("status");
+        userGame.setStatus(GameStatus.valueOf(novoStatus));
+
+        userGameRepository.save(userGame);
+
+        return ResponseEntity.ok().build();
     }
 }
