@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Home from './pages/Home'
+import MyGames from './pages/MyGames'
 
 function App() {
   return (
@@ -11,6 +12,9 @@ function App() {
         
         {/* Rota principal dos jogos */}
         <Route path="/games" element={<Home />} />
+
+        {/* Rota da lista do usuário */}
+        <Route path="/minha-lista" element={<MyGames />} />
 
         {/* Qualquer outra rota joga pro login */}
         <Route path="*" element={<Navigate to="/" />} />
