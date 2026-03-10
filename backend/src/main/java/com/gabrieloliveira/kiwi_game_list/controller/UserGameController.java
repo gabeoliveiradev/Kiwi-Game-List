@@ -114,4 +114,46 @@ public class UserGameController {
 
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{gameId}")
+    public ResponseEntity<Object> removerJogo(
+            @PathVariable Long gameId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User usuario = (User) userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Jogo não encontrado"));
+
+        UserGame userGame = userGameRepository.findByUserAndGame(usuario, game)
+                .orElseThrow(() -> new RuntimeException("Jogo não está na sua lista"));
+
+        userGameRepository.delete(userGame);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{gameId}/rating")
+    public ResponseEntity<Object> atualizarNota(
+            @PathVariable Long gameId,
+            @RequestBody java.util.Map<String, Double> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User usuario = (User) userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Jogo não encontrado"));
+
+        UserGame userGame = userGameRepository.findByUserAndGame(usuario, game)
+                .orElseThrow(() -> new RuntimeException("Jogo não está na sua lista"));
+
+        Double novaNota = body.get("personalRating");
+        userGame.setPersonalRating(novaNota);
+
+        userGameRepository.save(userGame);
+
+        return ResponseEntity.ok().build();
+    }
 }

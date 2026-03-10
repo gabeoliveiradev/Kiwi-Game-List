@@ -4,6 +4,7 @@ import api from "../services/api";
 
 export default function MyGames() {
   const [myGames, setMyGames] = useState([]);
+  const [ratingOpen, setRatingOpen] = useState(null)
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +32,43 @@ export default function MyGames() {
     } catch (error) {
       console.error(error);
       alert('Erro ao atualizar o status do jogo.');
+    }
+  }
+
+  async function handleRemoveGame(gameId) {
+    const confirmar = window.confirm("Tem certeza que quer remover este jogo da sua lista?");
+    
+    if (confirmar) {
+      try {
+        await api.delete(`/my-games/${gameId}`);
+        
+        setMyGames(prevGames => prevGames.filter(item => item.game.id !== gameId));
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao remover o jogo.');
+      }
+    }
+  }
+
+  async function handleRating(gameId, clickedStar, currentRating) {
+    let newRating = clickedStar;
+
+    if (currentRating === clickedStar) {
+      newRating = clickedStar + 0.5;
+    } 
+    else if (currentRating === clickedStar + 0.5) {
+      newRating = clickedStar; 
+    }
+
+    try {
+      await api.put(`/my-games/${gameId}/rating`, { personalRating: newRating });
+      
+      setMyGames(prevGames => prevGames.map(item => 
+        item.game.id === gameId ? { ...item, personalRating: newRating } : item
+      ));
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao salvar a nota.');
     }
   }
 
@@ -85,22 +123,70 @@ export default function MyGames() {
                 Rating: {item.game.rating} ⭐
               </p>
 
-              {/* STATUS DO JOGO */}
-              <div className="mt-4 flex justify-between items-center text-sm">
-                <span className="text-green-400 font-bold">✓ Salvo</span>
-                
-                <select 
-                  value={item.status || ""} 
-                  onChange={(e) => handleStatusChange(item.game.id, e.target.value)}
-                  className="bg-zinc-700 text-zinc-200 border border-zinc-600 rounded p-1 outline-none focus:ring-1 focus:ring-green-500 cursor-pointer"
-                >
-                  <option value="" disabled>Selecione...</option>
-                  <option value="JOGANDO">🎮 Jogando</option>
-                  <option value="ZERADO">🏆 Finalizado</option>
-                  <option value="ABANDONADO">🛑 Abandonado</option>
-                  <option value="PLANEJANDO">🕒 Na Fila</option>
-                </select>
+              {/* STATUS DO JOGO E BOTÃO REMOVER */}
+              <div className="mt-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center text-sm">
+
+                  {/* SISTEMA DE AVALIAÇÃO (ESTRELAS) */}
+                  <div className="flex items-center">
+                    {ratingOpen === item.game.id ? (
+                      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded border border-zinc-600">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => handleRating(item.game.id, star, item.personalRating)}
+                            className="text-lg focus:outline-none hover:scale-125 transition-transform"
+                            title="Clique duas vezes para meia estrela"
+                          >
+                            {item.personalRating >= star ? (
+                              <span className="text-yellow-400">★</span>
+                            ) : item.personalRating === star - 0.5 ? (
+                              <span className="text-yellow-400 opacity-50">★</span>
+                            ) : (
+                              <span className="text-zinc-600">★</span>
+                            )}
+                          </button>
+                        ))}
+                        <span className="text-xs ml-1 font-bold text-yellow-400 w-6 text-center">
+                          {item.personalRating ? item.personalRating : 0}
+                        </span>
+                        <button 
+                          onClick={() => setRatingOpen(null)} 
+                          className="ml-2 text-xs text-zinc-400 hover:text-white"
+                        >
+                          ✖
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => setRatingOpen(item.game.id)}
+                        className="text-yellow-400 font-bold hover:text-yellow-300 flex items-center gap-1 text-sm bg-zinc-800 px-2 py-1 rounded border border-zinc-700"
+                      >
+                        ⭐ {item.personalRating ? item.personalRating : 'Avaliar'}
+                      </button>
+                    )}
+                  </div>
+                  
+                  <select 
+                    value={item.status || ""} 
+                    onChange={(e) => handleStatusChange(item.game.id, e.target.value)}
+                    className="bg-zinc-700 text-zinc-200 border border-zinc-600 rounded p-1 outline-none focus:ring-1 focus:ring-green-500 cursor-pointer"
+                  >
+                    <option value="" disabled>Selecione...</option>
+                    <option value="JOGANDO">🎮 Jogando</option>
+                    <option value="ZERADO">🏆 Finalizado</option>
+                    <option value="ABANDONADO">🛑 Abandonado</option>
+                    <option value="PLANEJANDO">🕒 Na Fila</option>
+                  </select>
                 </div>
+
+                <button 
+                  onClick={() => handleRemoveGame(item.game.id)}
+                  className="w-full bg-red-900/50 text-red-400 border border-red-900/50 py-1.5 rounded text-sm hover:bg-red-800 hover:text-white transition-colors flex justify-center items-center gap-2"
+                >
+                  Remover da Lista
+                </button>
+              </div>
             </div>
           </div>
         ))}
